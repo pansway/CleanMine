@@ -23,7 +23,7 @@
             color: #333;
             font-size: 20px;
             text-align: center;
-            line-height: 40px;
+            line-height: 2em;
             background-color: aqua;
             float: left;
             transition: .5s;
@@ -36,7 +36,6 @@
         }
 
         .box-checked {
-
             background-color: yellow;
         }
 
@@ -53,7 +52,7 @@
 </head>
 
 <body>
-    <div id="container" data-row="9" data-col="9" data-mine="10">
+    <div id="container" data-row="15" data-col="15" data-mine="35">
     </div>
     <script>
         var container = document.getElementById("container"),
@@ -94,9 +93,9 @@
             return arr
         }
 
-        function allEmptyBox(a) {
+        function emptyBoxNearby(a) {
             var arr = aroundBox(a)
-            for (let i = 0; i < 8; i++) {
+            for (let i = 0; i < arr.length; i++) {
                 if (boxes[arr[i]].dataset.num == "") {
                     arr = joinArr(arr, aroundBox(arr[i]))
                 }
@@ -116,6 +115,7 @@
             else {
                 alert("You Lose!")
                 endGame()
+                return "Game Over"
             }
         }
 
@@ -126,7 +126,7 @@
                     arr = arr.concat(arr2[i])
                 }
             }
-            if (arr.toString() == arr1.toString()) return false
+            // if (arr.toString() == arr1.toString()) return false
             return arr
         }
 
@@ -145,7 +145,7 @@
             boxes[i].onclick = function () {
                 if (boxes[i].dataset.num == "") {
                     cleanMine(i)
-                    emptyBox = allEmptyBox(i)
+                    emptyBox = emptyBoxNearby(i)
                     for (let j = 0; j < emptyBox.length; j++) {
                         cleanMine(emptyBox[j])
                     }
@@ -157,9 +157,16 @@
                 }
             }
             boxes[i].ondblclick = function () {
+                var flags = 0
                 if (boxes[i].dataset.checked == "yes" && boxes[i].dataset.num != "") {
-                    emptyBox = aroundBox(i)
+                    for (let j = 0; j < aroundBox(i).length; j++) {
+                        if (boxes[aroundBox(i)[j]].innerText == "F")
+                            flags++
+                    }
+                    if (boxes[i].dataset.num != flags) return false
+                    emptyBox = emptyBoxNearby(i)
                     for (let j = 0; j < emptyBox.length; j++) {
+                        if (cleanMine(emptyBox[j]) == "Game Over") break
                         cleanMine(emptyBox[j])
                     }
                 }

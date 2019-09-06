@@ -1,1 +1,1 @@
-# CleanMine
+# Based on pure javascript
