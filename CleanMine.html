@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>CleanMine</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        #container {
+            margin: 20px auto;
+        }
+
+        .box {
+            width: 40px;
+            height: 40px;
+            margin: 2px;
+            color: #333;
+            font-size: 20px;
+            text-align: center;
+            line-height: 40px;
+            background-color: aqua;
+            float: left;
+            transition: .5s;
+        }
+
+        .box::after {
+            /* content: attr(data-num); */
+            width: 100%;
+            height: 100%;
+        }
+
+        .box-checked {
+
+            background-color: yellow;
+        }
+
+        .box:hover {
+            transform: scale(1.1);
+            background-color: rgb(19, 124, 223);
+        }
+
+        .box-checked:hover {
+            transform: scale(1);
+            background-color: yellow;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container" data-row="9" data-col="9" data-mine="10">
+    </div>
+    <script>
+        var container = document.getElementById("container"),
+            row = container.dataset.row,
+            col = container.dataset.col,
+            mine = container.dataset.mine,
+            boxes,
+            clearedBox = 0,
+            mineIndex,
+            sum = 0,
+            emptyBox = []
+        container.style = "width:" + col * 44 + "px;height:" + row * 44 + "px"
+        document.onselectstart = function () {
+            return false
+        }
+        container.oncontextmenu = function () {
+            return false
+        }
+        //创建格子
+        for (let i = 0; i < row * col; i++) {
+            var box = document.createElement("div")
+            box.setAttribute("class", "box")
+            container.appendChild(box)
+        }
+        boxes = document.getElementsByClassName("box")
+
+        function aroundBox(a) {
+            var x = Math.floor(a / col),
+                y = a % col
+            arr = []
+            for (let i = x - 1; i <= x + 1; i++) {
+                if (i < 0 || i > row - 1) continue
+                for (let j = y - 1; j <= y + 1; j++) {
+                    if ((j < 0 || j > col - 1) || (i == x && j == y)) continue
+                    arr.push(i * col + j)
+                }
+            }
+            return arr
+        }
+
+        function allEmptyBox(a) {
+            var arr = aroundBox(a)
+            for (let i = 0; i < 8; i++) {
+                if (boxes[arr[i]].dataset.num == "") {
+                    arr = joinArr(arr, aroundBox(arr[i]))
+                }
+            }
+            return arr
+        }
+
+        function cleanMine(a) {
+            if (boxes[a].dataset.checked == "yes" || boxes[a].innerText == "F") return false
+            if (boxes[a].dataset.num != "B") {
+                boxes[a].innerText = boxes[a].dataset.num
+                boxes[a].dataset.checked = "yes"
+                boxes[a].setAttribute("class", "box box-checked")
+                clearedBox++
+                console.log(clearedBox)
+            }
+            else {
+                alert("You Lose!")
+                endGame()
+            }
+        }
+
+        function joinArr(arr1, arr2) {
+            var arr = arr1
+            for (let i = 0; i < arr2.length; i++) {
+                if (arr1.indexOf(arr2[i]) == -1) {
+                    arr = arr.concat(arr2[i])
+                }
+            }
+            if (arr.toString() == arr1.toString()) return false
+            return arr
+        }
+
+        function endGame() {
+            for (let i = 0; i < boxes.length; i++) {
+                boxes[i].onclick = null
+                boxes[i].ondblclick = null
+                boxes[i].innerText = boxes[i].dataset.num
+                boxes[i].setAttribute("class", "box box-checked")
+            }
+        }
+        //绑定事件
+        for (let i = 0; i < boxes.length; i++) {
+            boxes[i].dataset.num = ""
+            boxes[i].dataset.checked = "no"
+            boxes[i].onclick = function () {
+                if (boxes[i].dataset.num == "") {
+                    cleanMine(i)
+                    emptyBox = allEmptyBox(i)
+                    for (let j = 0; j < emptyBox.length; j++) {
+                        cleanMine(emptyBox[j])
+                    }
+                }
+                else cleanMine(i)
+                if (clearedBox == row * col - mine) {
+                    alert("You Win!")
+                    endGame()
+                }
+            }
+            boxes[i].ondblclick = function () {
+                if (boxes[i].dataset.checked == "yes" && boxes[i].dataset.num != "") {
+                    emptyBox = aroundBox(i)
+                    for (let j = 0; j < emptyBox.length; j++) {
+                        cleanMine(emptyBox[j])
+                    }
+                }
+                if (clearedBox == row * col - mine) {
+                    alert("You Win!")
+                    endGame()
+                }
+            }
+            boxes[i].oncontextmenu = function (e) {
+                e.preventDefault()
+                if (boxes[i].dataset.checked == "yes") return
+                boxes[i].innerText = (boxes[i].innerText == "") ? "F" : ""
+            }
+        }
+        //埋雷
+        for (let i = 0; i < mine; i++) {
+            mineIndex = Math.floor(Math.random() * row * col)
+            if (boxes[mineIndex].dataset.num == "B") {
+                i--
+                continue
+            }
+            boxes[mineIndex].dataset.num = "B"
+            for (let j = 0; j < aroundBox(mineIndex).length; j++) {
+                if (boxes[aroundBox(mineIndex)[j]].dataset.num == "B") continue
+                boxes[aroundBox(mineIndex)[j]].dataset.num++
+            }
+        }
+
+        for (let i = 0; i < row * col; i++) {
+            if (boxes[i].dataset.num == "B") sum++
+        }
+        console.log(sum)
+    </script>
+</body>
+
+</html>
