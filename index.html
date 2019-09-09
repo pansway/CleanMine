@@ -29,7 +29,7 @@
             height: 40px;
             margin: 0 20px;
             color: white;
-            background-color: rgb(57, 135, 180);
+            background-color: rgb(81, 185, 245);
             border-radius: 5px;
             float: left;
             cursor: pointer;
@@ -40,7 +40,7 @@
             height: 40px;
             margin: 0 auto;
             color: white;
-            background-color: green;
+            background-color: rgb(17, 206, 231);
             border-radius: 5px;
         }
 
@@ -51,9 +51,9 @@
         .box {
             width: 40px;
             height: 40px;
-            margin: 2px;
+            margin: 1px;
             color: #333;
-            background-color: aqua;
+            background-color: rgb(61, 139, 190);
             float: left;
             transition: .5s;
         }
@@ -65,7 +65,7 @@
         }
 
         .box-checked {
-            background-color: yellow;
+            background-color: rgb(212, 212, 206);
         }
 
         .box:hover {
@@ -75,7 +75,7 @@
 
         .box-checked:hover {
             transform: scale(1);
-            background-color: yellow;
+            background-color: rgb(212, 212, 206);
         }
     </style>
 </head>
@@ -122,7 +122,7 @@
             clearedBox = 0
             flags = 0
             screen.innerText = mine
-            container.style = "width:" + col * 44 + "px;height:" + row * 44 + "px"
+            container.style = "width:" + col * 42 + "px;height:" + row * 42 + "px"
             for (let i = container.childNodes.length - 1; i >= 0; i--) {
                 container.removeChild(container.childNodes[0])
             }
