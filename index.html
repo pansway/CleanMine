@@ -5,64 +5,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>CleanMine</title>
+    <title>Minesweeper</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-        }
-
-        body{
-            font-family:sans-serif;
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
             font-size: 20px;
             line-height: 2em;
             text-align: center;
+            color: rgb(255, 255, 255);
         }
 
         #buttonSet {
-            width: 420px;
-            height: 40px;
+            width: 400px;
+            height: 60px;
             margin: 20px auto;
         }
 
         .button {
-            width: 100px;
+            width: 60px;
             height: 40px;
-            margin: 0 20px;
-            color: white;
-            background-color: rgb(81, 185, 245);
-            border-radius: 5px;
+            font-size: 18px;
+            margin: 0 15px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .2);
             float: left;
+            background-color: rgb(96, 125, 139);
+            border-radius: 5px;
             cursor: pointer;
         }
 
         #screen {
             width: 60px;
-            height: 40px;
-            margin: 0 auto;
-            color: white;
-            background-color: rgb(17, 206, 231);
+            height: 60px;
+            font-size: 30px;
+            line-height: 60px;
+            margin: 0 15px 0 55px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .2);
+            float: left;
+            background-color: rgb(95, 217, 205);
             border-radius: 5px;
         }
 
-        #container {
+        #minefield {
             margin: 20px auto;
+            position: relative;
+            box-shadow: 0 0 10px rgba(0, 0, 0, .2);
+        }
+
+        .message {
+            color: rgb(244, 67, 54);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-left: -46.44px;
+            margin-top: -20px;
+            animation: scale .6s ease-out forwards;
         }
 
         .box {
             width: 40px;
             height: 40px;
             margin: 1px;
-            color: #333;
+            color: rgb(51, 51, 51);
             background-color: rgb(61, 139, 190);
+            border-radius: 2px;
+            cursor: default;
             float: left;
-            transition: .5s;
-        }
-
-        .box::after {
-            /* content: attr(data-num); */
-            width: 100%;
-            height: 100%;
+            transition: .3s;
         }
 
         .box-checked {
@@ -71,68 +79,80 @@
 
         .box:hover {
             transform: scale(1.1);
-            background-color: rgb(19, 124, 223);
+            background-color: rgb(0, 94, 156);
         }
 
         .box-checked:hover {
             transform: scale(1);
             background-color: rgb(212, 212, 206);
         }
+
+        @keyframes scale {
+            from {
+                transform: scale(1)
+            }
+
+            to {
+                transform: scale(2)
+            }
+        }
     </style>
 </head>
 
 <body>
     <div id="buttonSet">
-        <div class="button" data-row="9" data-col="9" data-mine="10">简单</div>
-        <div class="button" data-row="16" data-col="16" data-mine="40">普通</div>
-        <div class="button" data-row="16" data-col="30" data-mine="99">困难</div>
+        <div class="button" data-row="9" data-col="9" data-mine="10" onclick="startGame(0)">简单</div>
+        <div class="button" data-row="16" data-col="16" data-mine="40" onclick="startGame(1)">普通</div>
+        <div class="button" data-row="16" data-col="30" data-mine="99" onclick="startGame(2)">困难</div>
+        <div id="screen"></div>
     </div>
-    <div id="screen"></div>
-    <div id="container" data-row="9" data-col="9" data-mine="5">
-    </div>
+    <div id="minefield"></div>
     <script>
-        var container = document.getElementById("container"),
-            button = document.getElementsByClassName("button"),
+        var minefield = document.getElementById("minefield"),
             screen = document.getElementById("screen"),
-            row = button[0].dataset.row,
-            col = button[0].dataset.col,
-            mine = button[0].dataset.mine,
+            row,
+            col,
+            mine,
+            difficulty,
+            startTime,
+            endTime,
             boxes,
             flags = 0,
-            clearedBox = 0,
-            mineIndex,
-            emptyBox = []
+            clearedBox = 0
 
-        window.onload = startGame()
+        window.onload = function () {
+            if (localStorage.difficulty) startGame(localStorage.difficulty)
+        }
         document.onselectstart = function () {
             return false
         }
-        container.oncontextmenu = function () {
+        minefield.oncontextmenu = function () {
             return false
         }
-        for (let i = 0; i < button.length; i++) {
-            button[i].onclick = function () {
-                row = this.dataset.row
-                col = this.dataset.col
-                mine = this.dataset.mine
-                startGame()
-            }
-        }
 
-        function startGame() {
+        function startGame(a) {
+            var mineIndex,
+                button = document.getElementsByClassName("button")
+            row = button[a].dataset.row
+            col = button[a].dataset.col
+            mine = button[a].dataset.mine
             clearedBox = 0
             flags = 0
+            startTime = new Date
             screen.innerText = mine
-            container.style = "width:" + col * 42 + "px;height:" + row * 42 + "px"
-            for (let i = container.childNodes.length - 1; i >= 0; i--) {
-                container.removeChild(container.childNodes[0])
+            difficulty = a
+            minefield.style = "width:" + col * 42 + "px;height:" + row * 42 + "px"
+            localStorage.setItem("difficulty", a)
+            if (!localStorage.getItem(a)) localStorage.setItem(a, "Infinity")
+            for (let i = minefield.childNodes.length - 1; i >= 0; i--) {
+                minefield.removeChild(minefield.childNodes[0])
             }
             for (let i = 0; i < row * col; i++) {
                 var box = document.createElement("div")
                 box.setAttribute("class", "box")
                 box.setAttribute("data-num", "")
                 box.setAttribute("data-checked", "no")
-                container.appendChild(box)
+                minefield.appendChild(box)
             }
             boxes = document.getElementsByClassName("box")
             for (let i = 0; i < mine; i++) {
@@ -157,12 +177,28 @@
                 boxes[i].innerText = boxes[i].dataset.num
                 boxes[i].setAttribute("class", "box box-checked")
             }
+            if (arguments[0] == "win") {
+                var time = Math.round((endTime.getTime() - startTime.getTime()) / 1000)
+                if (localStorage.getItem(difficulty) > time) {
+                    localStorage.setItem(difficulty, time)
+                    message("New Record")
+                }
+                else message("You Win")
+            }
+            else message("You Lose")
         }
 
-        function aroundBox(a) {
-            var x = Math.floor(a / col),
-                y = a % col
-            arr = []
+        function message() {
+            var message = document.createElement("div")
+            message.setAttribute("class", "message")
+            message.innerText = arguments[0]
+            minefield.appendChild(message)
+        }
+
+        function aroundBox() {
+            var x = Math.floor(arguments[0] / col),
+                y = arguments[0] % col,
+                arr = []
             for (let i = x - 1; i <= x + 1; i++) {
                 if (i < 0 || i > row - 1) continue
                 for (let j = y - 1; j <= y + 1; j++) {
@@ -173,8 +209,8 @@
             return arr
         }
 
-        function emptyBoxNearby(a) {
-            var arr = aroundBox(a)
+        function emptyBoxNearby() {
+            var arr = aroundBox(arguments[0])
             for (let i = 0; i < arr.length; i++) {
                 if (boxes[arr[i]].dataset.num == "") {
                     arr = joinArr(arr, aroundBox(arr[i]))
@@ -184,19 +220,14 @@
         }
 
         function cleanMine(a) {
-            if (boxes[a].dataset.checked == "yes" || boxes[a].innerText == "F") return false
+            if (boxes[a].dataset.checked == "yes" || boxes[a].innerText == "F") return
             if (boxes[a].dataset.num != "B") {
                 boxes[a].innerText = boxes[a].dataset.num
                 boxes[a].dataset.checked = "yes"
                 boxes[a].setAttribute("class", "box box-checked")
                 clearedBox++
-                console.log(row * col - mine - clearedBox)
             }
-            else {
-                alert("You Lose!")
-                endGame()
-                return "Game Over"
-            }
+            else endGame()
         }
 
         function joinArr(arr1, arr2) {
@@ -206,51 +237,49 @@
                     arr = arr.concat(arr2[i])
                 }
             }
-            // if (arr.toString() == arr1.toString()) return false
             return arr
         }
 
-        //绑定事件
         function bindEvent() {
+            var selectedBox = []
             for (let i = 0; i < boxes.length; i++) {
                 boxes[i].onclick = function () {
                     if (boxes[i].dataset.num == "") {
                         cleanMine(i)
-                        emptyBox = emptyBoxNearby(i)
-                        for (let j = 0; j < emptyBox.length; j++) {
-                            cleanMine(emptyBox[j])
+                        selectedBox = emptyBoxNearby(i)
+                        for (let j = 0; j < selectedBox.length; j++) {
+                            cleanMine(selectedBox[j])
                         }
                     }
                     else cleanMine(i)
                     if (clearedBox == row * col - mine) {
-                        alert("You Win!")
-                        endGame()
+                        endTime = new Date
+                        endGame("win")
                     }
                 }
                 boxes[i].ondblclick = function () {
-                    var flags = 0
+                    var aroundFlags = 0
                     if (boxes[i].dataset.checked == "yes" && boxes[i].dataset.num != "") {
                         for (let j = 0; j < aroundBox(i).length; j++) {
                             if (boxes[aroundBox(i)[j]].innerText == "F")
-                                flags++
+                                aroundFlags++
                         }
-                        if (boxes[i].dataset.num != flags) return false
-                        emptyBox = emptyBoxNearby(i)
-                        for (let j = 0; j < emptyBox.length; j++) {
-                            if (cleanMine(emptyBox[j]) == "Game Over") break
-                            cleanMine(emptyBox[j])
+                        if (boxes[i].dataset.num != aroundFlags) return
+                        selectedBox = emptyBoxNearby(i)
+                        for (let j = 0; j < selectedBox.length; j++) {
+                            cleanMine(selectedBox[j])
                         }
                     }
                     if (clearedBox == row * col - mine) {
-                        alert("You Win!")
-                        endGame()
+                        endTime = new Date
+                        endGame("win")
                     }
                 }
                 boxes[i].oncontextmenu = function (e) {
                     e.preventDefault()
                     if (boxes[i].dataset.checked == "yes") return
-                    // boxes[i].innerText = (boxes[i].innerText == "") ? "F" : ""
                     if (boxes[i].innerText == "") {
+                        if (flags == mine) return
                         boxes[i].innerText = "F"
                         flags++
                     }
