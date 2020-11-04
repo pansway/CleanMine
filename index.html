@@ -144,8 +144,11 @@
             minefield.style = "width:" + col * 42 + "px;height:" + row * 42 + "px"
             localStorage.setItem("difficulty", a)
             if (!localStorage.getItem(a)) localStorage.setItem(a, "Infinity")
-            for (let i = minefield.childNodes.length - 1; i >= 0; i--) {
-                minefield.removeChild(minefield.childNodes[0])
+            // for (let i = minefield.childNodes.length - 1; i >= 0; i--) {
+            //     minefield.removeChild(minefield.childNodes[0])
+            // }
+            while(minefield.hasChildNodes()){
+                minefield.removeChild(minefield.firstChild)
             }
             for (let i = 0; i < row * col; i++) {
                 var box = document.createElement("div")
@@ -174,12 +177,11 @@
             for (let i = 0; i < boxes.length; i++) {
                 boxes[i].onclick = null
                 boxes[i].ondblclick = null
-                boxes[i].oncontextmenu = null
                 boxes[i].innerText = boxes[i].dataset.num
                 boxes[i].setAttribute("class", "box box-checked")
             }
             if (arguments[0] == "win") {
-                var time = Math.round((endTime.getTime() - startTime.getTime()) / 1000)
+                var time = endTime.getTime() - startTime.getTime()
                 if (localStorage.getItem(difficulty) > time) {
                     localStorage.setItem(difficulty, time)
                     message("New Record")
